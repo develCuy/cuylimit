@@ -1,0 +1,59 @@
+#!/usr/bin/env lua5.1
+
+local seawolf = require [[seawolf]].__build([[text]], [[contrib]], [[variable]])
+local trim, xtable = seawolf.text.trim, seawolf.contrib.seawolf_table
+local sleep = require [[socket]].sleep
+
+--~ sudo cgcreate -g memory,cpu:browsers
+--~ sudo sh -c "echo 576460625000000000 > /sys/fs/cgroup/memory/browsers/memory.limit_in_bytes"
+--~ sudo sh -c "echo 64 > /sys/fs/cgroup/cpu/browsers/cpu.shares"
+--~ chromium-browser &
+--~ sleep 10
+--~ sudo cgclassify -g memory,cpu:browsers `pidof chromium-browse`
+--~ sudo cgclassify -g memory,cpu:browsers `pidof firefox`
+
+local pattern = arg[1]
+local limit = arg[2]
+
+if nil == pattern or nil == limit then
+  print "Usage: cuylimit pattern limit\n"
+  print "  pattern   The witness username"
+  print "  limit     percentage of CPU allowed from 1 up (cpulimit -l)"
+  print "\n"
+  os.exit(1)
+end
+
+function os.capture(cmd)
+  local f = assert(io.popen(cmd, [[r]]))
+  local s = assert(f:read([[*a]]))
+  f:close()
+  s = string.gsub(s, '[\n\r]+', '\n')
+  return s
+end
+
+local pids = {}
+while true do
+  -- Get list of processes
+  local plist = os.capture [[ps cax]] or [[]]
+
+  -- Filter processes by pattern
+  local commands = xtable()
+  for line in plist:gmatch '[^\r\n]+' do
+    line = trim(line)
+    local pid = line:match [[(%d+)]]
+
+    if pid then
+      if 0 < (line:find(pattern) or 0) then
+        if pids[pid] then
+          -- do nothing!
+        else
+          os.execute(([[cpulimit -b -z -l %s -p %s]]):format(limit, pid))
+          pids[pid] = true
+        end
+      else
+        pids[pid] = nil
+      end
+    end
+  end
+  sleep(1)
+end
