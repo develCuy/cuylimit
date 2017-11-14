@@ -1,16 +1,8 @@
 #!/usr/bin/env lua5.1
 
-local seawolf = require [[seawolf]].__build([[text]], [[contrib]], [[variable]])
+local seawolf = require [[seawolf]].__build([[text]], [[contrib]])
 local trim, xtable = seawolf.text.trim, seawolf.contrib.seawolf_table
 local sleep = require [[socket]].sleep
-
---~ sudo cgcreate -g memory,cpu:browsers
---~ sudo sh -c "echo 576460625000000000 > /sys/fs/cgroup/memory/browsers/memory.limit_in_bytes"
---~ sudo sh -c "echo 64 > /sys/fs/cgroup/cpu/browsers/cpu.shares"
---~ chromium-browser &
---~ sleep 10
---~ sudo cgclassify -g memory,cpu:browsers `pidof chromium-browse`
---~ sudo cgclassify -g memory,cpu:browsers `pidof firefox`
 
 local pattern = arg[1]
 local limit = arg[2]
