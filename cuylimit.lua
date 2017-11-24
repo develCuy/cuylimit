@@ -2,7 +2,7 @@
 
 local seawolf = require [[seawolf]].__build([[text]], [[contrib]])
 local trim, xtable = seawolf.text.trim, seawolf.contrib.seawolf_table
-local sleep = require [[socket]].sleep
+local explode, sleep = seawolf.text.explode, require [[socket]].sleep
 
 local pattern = arg[1]
 local limit = arg[2]
@@ -26,16 +26,16 @@ end
 local pids = {}
 while true do
   -- Get list of processes
-  local plist = os.capture [[ps cax]] or [[]]
+  local plist = os.capture [[ps axo pid,cmd]] or [[]]
 
   -- Filter processes by pattern
   local commands = xtable()
   for line in plist:gmatch '[^\r\n]+' do
     line = trim(line)
-    local pid = line:match [[(%d+)]]
+    local pid, cmd = unpack(explode([[ ]], line) or {})
 
     if pid then
-      if 0 < (line:find(pattern) or 0) then
+      if 0 < (cmd:find(pattern) or 0) then
         if pids[pid] then
           -- do nothing!
         else
