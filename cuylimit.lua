@@ -1,8 +1,12 @@
 #!/usr/bin/env lua5.1
 
-local seawolf = require [[seawolf]].__build([[text]], [[contrib]])
+local seawolf = require [[seawolf]].__build([[text]], [[contrib]], [[variable]])
 local trim, xtable = seawolf.text.trim, seawolf.contrib.seawolf_table
 local explode, sleep = seawolf.text.explode, require [[socket]].sleep
+
+function debug.print(msg)
+  io.stderr:write(seawolf.variable.print_r(msg, 1))
+end
 
 local pattern = arg[1]
 local limit = arg[2]
