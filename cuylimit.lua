@@ -27,29 +27,37 @@ function os.capture(cmd)
   return s
 end
 
-local pids = {}
 while true do
-  -- Get list of processes
-  local plist = os.capture [[ps axo pid,cmd]] or [[]]
+  local limited = {}
+  local procs = {}
 
-  -- Filter processes by pattern
-  local commands = xtable()
-  for line in plist:gmatch '[^\r\n]+' do
+  -- Get list of running processes
+  for line in (os.capture [[ps axo pid,cmd]] or [[]]):gmatch '[^\r\n]+' do
     line = trim(line)
-    local pid, cmd = unpack(explode([[ ]], line) or {})
+    local pid, cmd = line:gmatch [[(%d+) (.+)]] ()
 
     if pid then
-      if 0 < (cmd:find(pattern) or 0) then
-        if pids[pid] then
-          -- do nothing!
-        else
-          os.execute(([[cpulimit -b -z -l %s -p %s]]):format(limit, pid))
-          pids[pid] = true
-        end
+      -- Filter PIDs controlled by already running instances of cpulimit
+      local limited_pid = cmd:gmatch([[cpulimit %-p (%d+) %-]])()
+
+      if limited_pid then
+        limited[limited_pid] = true
       else
-        pids[pid] = nil
+        procs[pid] = cmd
       end
     end
   end
+
+  -- Find matching processes
+  for pid, cmd in pairs(procs) do
+    if 0 < (cmd:find(pattern) or 0) and 0 >= (cmd:find [[cuylimit]] or 0) then
+      if limited[pid] then
+        -- do nothing!
+      else
+        os.execute(([[cpulimit -p %s -b -z -l %s]]):format(pid, limit))
+      end
+    end
+  end
+
   sleep(1)
 end
