@@ -42,7 +42,7 @@ while true do
 
     if pid then
       -- Filter PIDs controlled by already running instances of cpulimit
-      local limited_pid = cmd:gmatch([[cpulimit %-p (%d+) %-]])()
+      local limited_pid = cmd:gmatch([[cuylimit_(%d+)]])()
 
       if limited_pid then
         limited[limited_pid] = true
@@ -58,7 +58,8 @@ while true do
       if limited[pid] then
         -- do nothing!
       else
-        os.execute(([[cpulimit -p %s -b -z -l -q %s]]):format(pid, limit))
+        local limitcmd = ('cpulimit -q -b -z -l %s -p %s'):format(pid, limit)
+        os.execute(('bash -c "exec -a cuylimit_%s %s"'):format(pid, limitcmd))
       end
     end
   end
