@@ -24,11 +24,27 @@ function os.capture(cmd)
   return s
 end
 
+-- Avoid running multiple instances with same params
+do
+  local mycmd = ('%s %s %s'):format(arg[-1], arg[0], table.concat(arg, ' '))
+  local count = 0
+  for line in ((os.capture('pgrep -a -f "' .. mycmd .. '"')):gmatch '[^\r\n]+') do
+    local pid, cmd = line:gmatch [[(%d+) (.+)]] ()
+    if cmd == mycmd then
+      count = count + 1
+    end
+    if count > 1 then
+      io.stderr:write "There is already another cuylimit instance running with same parameters. Exiting...\n"
+      os.exit(0)
+    end
+  end
+end
+
 -- Detect user invoking this script
 local uid = ((os.capture 'id -u'):gmatch '[^\r\n]+')()
 if not is_numeric(uid) then
   io.stderr:write "ERROR: Can't detect real user ID (UID)\n"
-  os.exit()
+  os.exit(1)
 end
 
 while true do
