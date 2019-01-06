@@ -58,7 +58,7 @@ while true do
       if limited[pid] then
         -- do nothing!
       else
-        os.execute(([[cpulimit -p %s -b -z -l %s]]):format(pid, limit))
+        os.execute(([[cpulimit -p %s -b -z -l -q %s]]):format(pid, limit))
       end
     end
   end
