@@ -10,7 +10,7 @@ local limit = arg[2]
 
 if nil == pattern or nil == limit then
   print "Usage: cuylimit pattern limit\n"
-  print "  pattern   The witness username"
+  print "  pattern   i.e: chrome"
   print "  limit     percentage of CPU allowed from 1 up (cpulimit -l)"
   print "\n"
   os.exit(1)
